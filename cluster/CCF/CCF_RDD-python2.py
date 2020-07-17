@@ -1,25 +1,26 @@
-import findspark
-findspark.init()
+#import findspark
+#findspark.init()
 #from pyspark.sql import SparkSession 
 from pyspark import SparkConf,SparkContext
 import os
 import subprocess
 
 # Initialize spark-context configuration
-conf = SparkConf()
-conf.setMaster('local')
-conf.setAppName('pyspark-shell-CCF')
+conf = SparkConf().setAppName('CCF-ccompain')
+#conf = SparkConf()
+#conf.setMaster('local')
+#conf.setAppName('pyspark-shell-CCF')
 # Local execution
-conf.set('spark.driver.host', '127.0.0.1')
+#conf.set('spark.driver.host', '127.0.0.1')
 # Just for having a nice gui locally
-conf.set("spark.ui.proxyBase", "")
+#conf.set("spark.ui.proxyBase", "")
 # Local exec paramters
-conf.set("spark.cores.max","4")
-conf.set("spark.executor.cores","2")
+#conf.set("spark.cores.max","4")
+#conf.set("spark.executor.cores","2")
 # Needs to be explicitly provided as env. Otherwise workers run Python 2.7
-os.environ['PYSPARK_PYTHON'] = '/Users/ccompain/.pyenv/versions/miniconda3-latest/bin/python' 
+#os.environ['PYSPARK_PYTHON'] = '/Users/ccompain/.pyenv/versions/miniconda3-latest/bin/python' 
 # For jupyter notebook => os.environ['PYSPARK_DRIVER_PYTHON'] = 'jupyter' 
-os.environ['PYSPARK_DRIVER_PYTHON'] = 'python'
+#os.environ['PYSPARK_DRIVER_PYTHON'] = 'python'
 # Build the spark-context 
 sc = SparkContext(conf=conf)
 # Set logging level to avoid [INFO] message at the console
@@ -68,55 +69,57 @@ def CCF_Iterate_reduce(data):
 ## Get the local path 
 # directory = os.path.abspath(os.getcwd())
 storage = "hdfs:"
-input_directory = "/CCF/input"
-output_directory = "/CCF/output"
-partition_number = 2
+input_directory = "/user/user345/input"
+output_directory = "/user/user345/output"
+
 ## Explicit filename as input data
-input_filename = "example.csv"
+#input_filename = "example.csv"
+input_filename = "web-Google.txt"
 #input_filename = "simple_random_graph.csv"
 #input_filename = "simple_2_graphs.csv"
+
 ## Build the absolute file path
 #file_path = "file://" + pwd + "/" + filename
 input_file_path = storage + input_directory + "/" + input_filename
 ## Import as RDD line_by_line
-raw_graph = sc.textFile(input_file_path,minPartitions=partition_number)
+raw_graph = sc.textFile(input_file_path)
 ## CSV transformation -> Separator need to be adapted considering the file format
 r = raw_graph.map(lambda x:x.split(',')).map(lambda x:(x[0],x[1]))
-## Cleaning - Delete previous results
-subprocess.call(["hdfs", "dfs", "-rm", "-R", output_directory])
+## Delete previous results
+#subprocess.call(["hdfs", "dfs", "-rm", "-R", output_directory])
 
 new_pair_flag = True
 iteration = 0
 new_reduce = r
 current_size = new_reduce.count()
-number_partition = new_reduce.getNumPartitions()
 
 print("################################")
 print(" Start CCF RDD")
 print("--------------------------------")
-print(f"Number of pairs :{current_size}")
-print(f"Number of partitions : {number_partition}")
+#print(f"Number of pairs :{current_size}")
+print("Number of pairs : "+str(current_size))
 
 while new_pair_flag:
     iteration +=1
-    print(f"*** Iteration {iteration} ***")
+    #print(f"*** Iteration {iteration} ***")
+    print("*** Iteration "+str(iteration)+" ***")
     new_map = CCF_Iterate_map(new_reduce)
     new_reduce_tmp = CCF_Iterate_reduce(new_map)
     new_size = new_reduce_tmp.count()
-    print(f"--> Iteration {iteration} : Number of new pairs = {new_size-current_size}")
+    #print(f"--> Iteration {iteration} : Number of new pairs = {new_size-current_size}")
+    print("--> Iteration "+str(iteration)+" : Number of new pairs = "+str(new_size-current_size))
     if (new_size-current_size)>0:
         new_reduce = CCF_dedup(new_reduce_tmp)
     else:
         print("*** Stop the loop ***")
         print("Clean the last RDD of duplicate pairs")
         new_reduce = CCF_dedup(new_reduce_tmp)
-        print(f"Save last RDD in {output_directory}")
+        print("Save last RDD in "+output_directory)
         new_reduce.coalesce(1).saveAsTextFile(output_directory)
         new_pair_flag = False
 print("--------------------------------")
-print("Total iterations :",iteration)
+#print("Total iterations :",iteration)
+print("Total iterations :"+str(iteration))
 print("Results dump : ")
-subprocess.call(["hdfs", "dfs", "-ls", output_directory])
+#subprocess.call(["hdfs", "dfs", "-ls", output_directory])
 print("################################")
-
-
