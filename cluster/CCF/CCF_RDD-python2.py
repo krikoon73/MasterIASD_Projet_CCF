@@ -65,13 +65,16 @@ def CCF_Iterate_reduce(data):
 # Simple example
 # r=sc.parallelize([("A","B"),("B","C"),("B","D"),("D","E"),("F","G"),("G","H")])
 
+log4jLogger = sc._jvm.org.apache.log4j
+LOGGER = log4jLogger.LogManager.getLogger(__name__)
+
 # Import the file as RDD
 ## Get the local path 
 # directory = os.path.abspath(os.getcwd())
 storage = "hdfs:"
 input_directory = "/user/user345/input"
 output_directory = "/user/user345/output"
-
+partition_number = 44
 ## Explicit filename as input data
 #input_filename = "example.csv"
 input_filename = "web-Google.txt"
@@ -93,28 +96,40 @@ iteration = 0
 new_reduce = r
 current_size = new_reduce.count()
 
-print("################################")
-print(" Start CCF RDD")
-print("--------------------------------")
-print("Number of pairs : "+str(current_size))
+#print("################################")
+LOGGER.warn("################################")
+#print(" Start CCF RDD")
+LOGGER.warn(" Start CCF RDD ")
+#print("--------------------------------")
+LOGGER.warn("--------------------------------")
+#print("Number of pairs : "+str(current_size))
+LOGGER.warn("Number of partitions : "+str(number_partition))
 
 while new_pair_flag:
     iteration +=1
-    print("*** Iteration "+str(iteration)+" ***")
+    #print("*** Iteration "+str(iteration)+" ***")
+    LOGGER.warn("*** Iteration : "+str(iteration))
     new_map = CCF_Iterate_map(new_reduce)
     new_reduce_tmp,new_pairs = CCF_Iterate_reduce(new_map)
-    print("--> Iteration "+str(iteration)+" : Number of new pairs = "+str(new_pairs))
+    new_reduce = CCF_dedup(new_reduce_tmp)
+    #print("--> Iteration "+str(iteration)+" : Number of new pairs = "+str(new_pairs))
+    LOGGER.warn("--> Number of new pairs = "+str(new_pairs))
     if (new_pairs)>0:
-        new_reduce = CCF_dedup(new_reduce_tmp)
+        LOGGER.warn("Next iteration")
     else:
-        print("*** Stop the loop ***")
-        print("Clean the last RDD of duplicate pairs")
-        new_reduce = CCF_dedup(new_reduce_tmp)
-        print("Save last RDD in "+output_directory)
+        #print("*** Stop the loop ***")
+        LOGGER.warn("*** Stop the loop ***")
+        #print("Clean the last RDD of duplicate pairs")
+        LOGGER.warn("Clean the last RDD of duplicate pairs")
+        #print("Save last RDD in "+output_directory)
+        LOGGER.warn("Save last RDD in : "+output_directory)
         new_reduce.coalesce(1).saveAsTextFile(output_directory)
         new_pair_flag = False
-print("--------------------------------")
-print("Total iterations :"+str(iteration))
-print("Results dump : ")
+#print("--------------------------------")
+LOGGER.warn("--------------------------------")
+#print("Total iterations :"+str(iteration))
+LOGGER.warn("Total iterations :"+str(iteration))
+#print("Results dump : ")
 #subprocess.call(["hdfs", "dfs", "-ls", output_directory])
-print("################################")
+#print("################################")
+LOGGER.warn("################################")

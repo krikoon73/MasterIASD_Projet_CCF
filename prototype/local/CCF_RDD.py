@@ -30,6 +30,7 @@ def CCF_dedup(data):
         .reduceByKey(lambda x,y: 1)\
         .map(lambda x: (x[0][0], x[0][1]))
         #.sortBy(lambda x: x[0])
+    number_element = dedup.count()
     return dedup
 
 def CCF_Iterate_map(pair):
@@ -70,6 +71,9 @@ def CCF_Iterate_reduce(data):
 # Simple example
 # r=sc.parallelize([("A","B"),("B","C"),("B","D"),("D","E"),("F","G"),("G","H")])
 
+log4jLogger = sc._jvm.org.apache.log4j
+LOGGER = log4jLogger.LogManager.getLogger(__name__)
+
 # Import the file as RDD
 ## Get the local path 
 # directory = os.path.abspath(os.getcwd())
@@ -97,31 +101,43 @@ new_reduce = r
 current_size = new_reduce.count()
 number_partition = new_reduce.getNumPartitions()
 
-print("################################")
-print(" Start CCF RDD")
-print("--------------------------------")
-print(f"Number of pairs :{current_size}")
-print(f"Number of partitions : {number_partition}")
+LOGGER.warn("################################")
+#print(" Start CCF RDD")
+LOGGER.warn(" Start CCF RDD ")
+#print("--------------------------------")
+LOGGER.warn("--------------------------------")
+#print(f"Number of pairs :{current_size}")
+LOGGER.warn("Number of pairs : "+str(current_size))
+#print(f"Number of partitions : {number_partition}")
+LOGGER.warn("Number of partitions : "+str(number_partition))
 
 while new_pair_flag:
     iteration +=1
-    print(f"*** Iteration {iteration} ***")
+    #print(f"*** Iteration {iteration} ***")
+    LOGGER.warn("*** Iteration : "+str(iteration))
     new_map = CCF_Iterate_map(new_reduce)
-    new_reduce_tmp,new_pairs = CCF_Iterate_reduce(new_map)
-    print(f"--> Iteration {iteration} : Number of new pairs = {new_pairs}")
+    new_reduce_tmp,new_pairs =  CCF_Iterate_reduce(new_map)
+    new_reduce = CCF_dedup(new_reduce_tmp)
+    #print(f"--> Iteration {iteration} : Number of new pairs = {new_pairs}")
+    LOGGER.warn("--> Number of new pairs = "+str(new_pairs))
     if (new_pairs)>0:
-        new_reduce = CCF_dedup(new_reduce_tmp)
+        LOGGER.warn("Next iteration")
+        #current_size = number_element
     else:
-        print("*** Stop the loop ***")
-        print("Clean the last RDD of duplicate pairs")
-        new_reduce = CCF_dedup(new_reduce_tmp)
-        print(f"Save last RDD in {output_directory}")
+        #print("*** Stop the loop ***")
+        LOGGER.warn("*** Stop the loop ***")
+        #print("Clean the last RDD of duplicate pairs")
+        LOGGER.warn("Clean the last RDD of duplicate pairs")
+        #print(f"Save last RDD in {output_directory}")
+        LOGGER.warn("Save last RDD in : "+output_directory)
         new_reduce.coalesce(1).saveAsTextFile(output_directory)
         new_pair_flag = False
-print("--------------------------------")
-print("Total iterations :",iteration)
-print("Results dump : ")
-subprocess.call(["hdfs", "dfs", "-ls", output_directory])
+#print("--------------------------------")
+LOGGER.warn("--------------------------------")
+#print("Total iterations :",iteration)
+LOGGER.warn("Total iterations :"+str(iteration))
+#print("Results dump : ")
+#subprocess.call(["hdfs", "dfs", "-ls", output_directory])
 print("################################")
 
 
