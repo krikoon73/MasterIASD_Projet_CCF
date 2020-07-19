@@ -4,12 +4,13 @@ from networkx.generators.random_graphs import erdos_renyi_graph
 import matplotlib.pyplot as plt
 
 # Example 1 : simple random graph
-n = 10
+n = 100
 p = 0.5
-g = erdos_renyi_graph(n, p,seed=10,directed=False)
+#g = erdos_renyi_graph(n, p,seed=10,directed=False)
+g = nx.random_lobster(n,p,p)
 #print(g.nodes)
 #print(g.edges)
-g1=open("simple_random_graph.csv",'wb')
+g1=open("../input/simple_random_graph.csv",'wb')
 nx.write_edgelist(g, g1,delimiter=",",data=False)
 
 # Example 2 : 2 distincts sub-graph

@@ -60,7 +60,7 @@ def CCF_Iterate_reduce(data):
     # Sorted => unionkeyminvalue=key_min.union(min_value).sortBy(lambda x:x[1])
     unionkeyminvalue=key_min.union(min_value)
 
-    return unionkeyminvalue
+    return unionkeyminvalue,countnewpair
 
 # Simple example
 # r=sc.parallelize([("A","B"),("B","C"),("B","D"),("D","E"),("F","G"),("G","H")])
@@ -96,19 +96,15 @@ current_size = new_reduce.count()
 print("################################")
 print(" Start CCF RDD")
 print("--------------------------------")
-#print(f"Number of pairs :{current_size}")
 print("Number of pairs : "+str(current_size))
 
 while new_pair_flag:
     iteration +=1
-    #print(f"*** Iteration {iteration} ***")
     print("*** Iteration "+str(iteration)+" ***")
     new_map = CCF_Iterate_map(new_reduce)
-    new_reduce_tmp = CCF_Iterate_reduce(new_map)
-    new_size = new_reduce_tmp.count()
-    #print(f"--> Iteration {iteration} : Number of new pairs = {new_size-current_size}")
-    print("--> Iteration "+str(iteration)+" : Number of new pairs = "+str(new_size-current_size))
-    if (new_size-current_size)>0:
+    new_reduce_tmp,new_pairs = CCF_Iterate_reduce(new_map)
+    print("--> Iteration "+str(iteration)+" : Number of new pairs = "+str(new_pairs))
+    if (new_pairs)>0:
         new_reduce = CCF_dedup(new_reduce_tmp)
     else:
         print("*** Stop the loop ***")
@@ -118,7 +114,6 @@ while new_pair_flag:
         new_reduce.coalesce(1).saveAsTextFile(output_directory)
         new_pair_flag = False
 print("--------------------------------")
-#print("Total iterations :",iteration)
 print("Total iterations :"+str(iteration))
 print("Results dump : ")
 #subprocess.call(["hdfs", "dfs", "-ls", output_directory])
