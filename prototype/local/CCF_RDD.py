@@ -64,13 +64,10 @@ def CCF_Iterate_reduce(data):
 #    return unionkeyminvalue
     return unionkeyminvalue,countnewpair
 
-# Initialise logger
-#log4jLogger = sc._jvm.org.apache.log4j
-#LOGGER = log4jLogger.LogManager.getLogger(__name__)
-
 # Simple example
 # r=sc.parallelize([("A","B"),("B","C"),("B","D"),("D","E"),("F","G"),("G","H")])
 
+# Initialise logger
 log4jLogger = sc._jvm.org.apache.log4j
 LOGGER = log4jLogger.LogManager.getLogger(__name__)
 
@@ -138,6 +135,7 @@ LOGGER.warn("--------------------------------")
 LOGGER.warn("Total iterations :"+str(iteration))
 #print("Results dump : ")
 #subprocess.call(["hdfs", "dfs", "-ls", output_directory])
-print("################################")
+#print("################################")
+LOGGER.warn("################################")
 
 
