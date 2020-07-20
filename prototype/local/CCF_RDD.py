@@ -77,9 +77,9 @@ LOGGER = log4jLogger.LogManager.getLogger(__name__)
 storage = "hdfs:"
 input_directory = "/CCF/input"
 output_directory = "/CCF/output"
-partition_number = 1
+partition_number = 2
 ## Explicit filename as input data
-input_filename = "example.csv"
+#input_filename = "example.csv"
 #input_filename = "simple_random_graph.csv"
 input_filename = "simple_2_graphs.csv"
 ## Build the absolute file path
