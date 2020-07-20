@@ -14,12 +14,12 @@ conf.set('spark.driver.host', '127.0.0.1')
 # Just for having a nice gui locally
 conf.set("spark.ui.proxyBase", "")
 # Local exec paramters
-conf.set("spark.cores.max","4")
-conf.set("spark.executor.cores","2")
+#conf.set("spark.cores.max","4")
+#conf.set("spark.executor.cores","2")
 # Needs to be explicitly provided as env. Otherwise workers run Python 2.7
-os.environ['PYSPARK_PYTHON'] = '/Users/ccompain/.pyenv/versions/miniconda3-latest/bin/python' 
+#os.environ['PYSPARK_PYTHON'] = '/Users/ccompain/.pyenv/versions/miniconda3-latest/bin/python' 
 # For jupyter notebook => os.environ['PYSPARK_DRIVER_PYTHON'] = 'jupyter' 
-os.environ['PYSPARK_DRIVER_PYTHON'] = 'python'
+#os.environ['PYSPARK_DRIVER_PYTHON'] = 'python'
 # Build the spark-context 
 sc = SparkContext(conf=conf)
 # Set logging level to avoid [INFO] message at the console
@@ -81,7 +81,7 @@ partition_number = 1
 ## Explicit filename as input data
 input_filename = "example.csv"
 #input_filename = "simple_random_graph.csv"
-#input_filename = "simple_2_graphs.csv"
+input_filename = "simple_2_graphs.csv"
 ## Build the absolute file path
 #file_path = "file://" + pwd + "/" + filename
 input_file_path = storage + input_directory + "/" + input_filename
