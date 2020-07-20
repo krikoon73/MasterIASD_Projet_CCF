@@ -1,9 +1,6 @@
-import findspark
-findspark.init() 
 from pyspark import SparkConf,SparkContext
 import os
 import argparse
-import subprocess
 from time import time
 
 def CCF_Iterate_reduce(pair):
