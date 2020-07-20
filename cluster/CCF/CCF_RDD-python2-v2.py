@@ -36,11 +36,6 @@ output_directory = args.output
 conf = SparkConf()
 conf.setMaster('local')
 conf.setAppName('pyspark-shell-CCF-v2')
-# Just for local execution
-conf.set('spark.driver.host', '127.0.0.1')
-conf.set("spark.ui.proxyBase", "") # Just for having a nice gui locally
-os.environ['PYSPARK_PYTHON'] = '/Users/ccompain/.pyenv/versions/miniconda3-latest/bin/python' # Needs to be explicitly provided as env. Otherwise workers run Python 2.7
-os.environ['PYSPARK_DRIVER_PYTHON'] = 'python'
 
 sc = SparkContext(conf=conf)
 sc.setLogLevel("WARN") 
@@ -58,9 +53,6 @@ raw_graph = sc.textFile(input_file_path,minPartitions=partition_number)
 
 # CSV transformation -> Separator need to be adapted considering the file format
 r = raw_graph.map(lambda x:x.split(',')).map(lambda x:(x[0],x[1]))
-
-# Cleaning - Delete previous results - Only for local execution
-subprocess.call(["hdfs", "dfs", "-rm", "-R", output_directory])
 
 new_pair_flag = True
 iteration = 0
