@@ -74,7 +74,7 @@ LOGGER = log4jLogger.LogManager.getLogger(__name__)
 storage = "hdfs:"
 input_directory = "/user/user345/input"
 output_directory = "/user/user345/output"
-partition_number = 44
+partition_number = 11
 ## Explicit filename as input data
 #input_filename = "example.csv"
 input_filename = "web-Google.txt"
@@ -85,7 +85,7 @@ input_filename = "web-Google.txt"
 #file_path = "file://" + pwd + "/" + filename
 input_file_path = storage + input_directory + "/" + input_filename
 ## Import as RDD line_by_line
-raw_graph = sc.textFile(input_file_path)
+raw_graph = sc.textFile(input_file_path,minPartitions=partition_number)
 ## CSV transformation -> Separator need to be adapted considering the file format
 r = raw_graph.map(lambda x:x.split(',')).map(lambda x:(x[0],x[1]))
 ## Delete previous results
@@ -95,6 +95,7 @@ new_pair_flag = True
 iteration = 0
 new_reduce = r
 current_size = new_reduce.count()
+number_partition = new_reduce.getNumPartitions()
 
 #print("################################")
 LOGGER.warn("################################")

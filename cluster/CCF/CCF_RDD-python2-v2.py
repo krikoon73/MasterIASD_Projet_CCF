@@ -31,7 +31,6 @@ output_directory = args.output
 
 # Initialize spark-context configuration
 conf = SparkConf()
-conf.setMaster('local')
 conf.setAppName('pyspark-shell-CCF-v2')
 
 sc = SparkContext(conf=conf)
