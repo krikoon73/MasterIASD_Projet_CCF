@@ -130,6 +130,9 @@ while new_pair_flag:
 LOGGER.warn("--------------------------------")
 #print("Total iterations :"+str(iteration))
 LOGGER.warn("Total iterations :"+str(iteration))
+results = list(dedupJob.map(lambda e: e[::-1]).groupByKey().map(lambda x : (x[0],tuple(x[1]))).collect())
+for k in results:
+    LOGGER.warn("Group id:"+str(k[0])+"| Number of nodes: "+str(len(k[1])+1))
 #print("Results dump : ")
 #subprocess.call(["hdfs", "dfs", "-ls", output_directory])
 #print("################################")
