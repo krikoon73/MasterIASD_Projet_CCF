@@ -19,6 +19,17 @@ def CCF_Iterate_reduce(pair):
                 accum.add(1)
                 yield((value, min))
 
+def CCF_Iterate_reduce_SS(pair):
+  key, values = pair[0],list(pair[1])
+  global accum
+  values.sort()
+  min = values.pop(0)
+  if min < key:
+    yield((key, min))
+    for value in values:
+      accum.add(1)
+      yield((value, min))
+
 # Inialize parser and parse argument
 parser = argparse.ArgumentParser()
 parser.add_argument("-input","--input",help="Complete input file path for Dataset ex. hdfs:/CCF/input/example.csv")
@@ -31,7 +42,6 @@ output_directory = args.output
 
 # Initialize spark-context configuration
 conf = SparkConf()
-conf.setMaster('local')
 conf.setAppName('pyspark-shell-CCF-v2')
 
 sc = SparkContext(conf=conf)
@@ -73,14 +83,16 @@ while new_pair_flag:
     mapJob = graph.flatMap(lambda e: (e,e[::-1]))
 
     # CCF-iterate (REDUCE)
-    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
+    #reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
+    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce_SS(pair)).sortByKey()
     #print(reduceJob.collect())
 
     # CCF-dedup 
     dedupJob = reduceJob.distinct()
+    dedupJob.persist()
 
     # Force the RDD evalusation
-    tmp = dedupJob.count()
+    # tmp = dedupJob.count()
 
     # Prepare next iteration
     graph = dedupJob
@@ -89,8 +101,9 @@ while new_pair_flag:
 
     LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(new_pair_number))
 
-LOGGER.warn("Number of connected components = "+str(tmp))
 process_time_checkpoint = time()
+tmp = dedupJob.count()
+LOGGER.warn("Number of connected components = "+str(tmp))
 process_time = process_time_checkpoint - start_time
 LOGGER.warn("Process time = "+str(process_time))
 LOGGER.warn("Save last RDD in "+output_directory)
@@ -100,9 +113,7 @@ write_time = write_time_checkpoint - process_time_checkpoint
 LOGGER.warn("RDD write time = "+str(write_time)) 
 
 # Optional : analysis of results
-'''
-results = list(map(lambda e: e[::-1], graph.collect()))
+#results = list(map(lambda e: e[::-1], graph.collect()))
+results = list(dedupJob.map(lambda e: e[::-1]).groupByKey().map(lambda x : (x[0],tuple(x[1]))).collect())
 for k in results:
-    LOGGER.debug("Component id: "+str(k[0])+"| Number of nodes= "+str(len(k[1])+1))
-'''
-
+    LOGGER.warn("Component id: "+str(k[0])+"| Number of nodes= "+str(len(k[1])+1))
