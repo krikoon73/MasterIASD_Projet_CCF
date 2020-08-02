@@ -19,17 +19,6 @@ def CCF_Iterate_reduce(pair):
                 accum.add(1)
                 yield((value, min))
 
-def CCF_Iterate_reduce_SS(pair):
-  key, values = pair[0],list(pair[1])
-  global accum
-  values.sort()
-  min = values.pop(0)
-  if min < key:
-    yield((key, min))
-    for value in values:
-      accum.add(1)
-      yield((value, min))
-
 # Inialize parser and parse argument
 parser = argparse.ArgumentParser()
 parser.add_argument("-input","--input",help="Complete input file path for Dataset ex. hdfs:/CCF/input/example.csv")
@@ -45,7 +34,7 @@ conf = SparkConf()
 conf.setAppName('pyspark-shell-CCF-v2')
 
 sc = SparkContext(conf=conf)
-sc.setLogLevel("WARN") 
+sc.setLogLevel("WARN")
 
 # Initialize logger
 log4jLogger = sc._jvm.org.apache.log4j
@@ -59,7 +48,7 @@ LOGGER.warn("--------------------------------")
 raw_graph = sc.textFile(input_file_path,minPartitions=partition_number)
 
 # CSV transformation -> Separator need to be adapted considering the file format
-r = raw_graph.map(lambda x:x.split(',')).map(lambda x:(x[0],x[1]))
+r = raw_graph.map(lambda x:x.split('\t')).map(lambda x:(x[0],x[1]))
 
 new_pair_flag = True
 iteration = 0
@@ -76,7 +65,7 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    newPair = False
+    new_pair_flag = False
     accum.value = 0
 
     # CCF-iterate (MAP)
@@ -84,15 +73,15 @@ while new_pair_flag:
 
     # CCF-iterate (REDUCE)
     #reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
-    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce_SS(pair)).sortByKey()
+    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
     #print(reduceJob.collect())
 
-    # CCF-dedup 
+    # CCF-dedup
     dedupJob = reduceJob.distinct()
     dedupJob.persist()
 
     # Force the RDD evalusation
-    # tmp = dedupJob.count()
+    tmp = dedupJob.count()
 
     # Prepare next iteration
     graph = dedupJob
@@ -110,7 +99,7 @@ LOGGER.warn("Save last RDD in "+output_directory)
 graph.coalesce(1).saveAsTextFile(output_directory)
 write_time_checkpoint = time()
 write_time = write_time_checkpoint - process_time_checkpoint
-LOGGER.warn("RDD write time = "+str(write_time)) 
+LOGGER.warn("RDD write time = "+str(write_time))
 
 # Optional : analysis of results
 #results = list(map(lambda e: e[::-1], graph.collect()))

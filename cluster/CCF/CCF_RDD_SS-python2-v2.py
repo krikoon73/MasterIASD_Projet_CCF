@@ -63,7 +63,7 @@ LOGGER.warn("--------------------------------")
 raw_graph = sc.textFile(input_file_path,minPartitions=partition_number)
 
 # CSV transformation -> Separator need to be adapted considering the file format
-r = raw_graph.map(lambda x:x.split(',')).map(lambda x:(x[0],x[1]))
+r = raw_graph.map(lambda x:x.split('\t')).map(lambda x:(x[0],x[1]))
 
 new_pair_flag = True
 iteration = 0
@@ -80,7 +80,7 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    newPair = False
+    new_pair_flag = False
     accum.value = 0
 
     # CCF-iterate (MAP)
@@ -100,7 +100,7 @@ while new_pair_flag:
     dedupJob.persist()
 
     # Force the RDD evalusation
-    # tmp = dedupJob.count()
+    tmp = dedupJob.count()
 
     # Prepare next iteration
     graph = dedupJob
