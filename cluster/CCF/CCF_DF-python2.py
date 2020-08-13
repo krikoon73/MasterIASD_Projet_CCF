@@ -8,13 +8,13 @@ from time import time
 def min_reduce(N1,N2s):
     min = N1
     for value in N2s:
-        if value < min:
+        if int(value) < int(min):
             min = value
     return min
 udf_min_reduce = funct.udf(min_reduce)
 
 def suite_reduce(N1,MinN,N2):
-    if str(MinN) == str(N2):
+    if int(MinN) == int(N2):
       return N1
     else :
       accum.add(1)
