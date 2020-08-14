@@ -84,10 +84,10 @@ start_time = time()
 while new_pair_flag:
     iteration += 1
     #new_pair_flag = False
-    #accum.value = 0
+    accum.value = 0
 
     # CCF-iterate (MAP)
-    mapJob = graph.union(graph.select('N2', 'N1'))#.persist()
+    mapJob = graph.union(graph.select('N2', 'N1'))
 
     # CCF-iterate (REDUCE)
     #reduceJob=mapJob.groupby("N1").agg(funct.collect_set("N2").alias('N2s'))\
