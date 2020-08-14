@@ -27,8 +27,9 @@ def CCF_reduce_SS_min(N1, N2s):
   if N1 < Min:
     Min=N1
   return Min
-udf_CCF_reduce_SS_min = funct.udf(lambda x,y: CCF_reduce_SS_min(x,y),StringType())
-_=spark.udf.register("udf_CCF_reduce_SS_min", CCF_reduce_SS_min)
+udf_CCF_reduce_SS_min = funct.udf(CCF_reduce_SS_min)
+#udf_CCF_reduce_SS_min = funct.udf(lambda x,y: CCF_reduce_SS_min(x,y),StringType())
+#_=spark.udf.register("udf_CCF_reduce_SS_min", CCF_reduce_SS_min)
 
 # Inialize parser and parse argument
 parser = argparse.ArgumentParser()
