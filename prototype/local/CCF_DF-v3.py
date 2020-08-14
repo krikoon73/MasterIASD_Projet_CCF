@@ -3,7 +3,7 @@ findspark.init()
 from pyspark import SparkConf,SparkContext
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as funct
-#from pyspark.sql.types import IntegerType, StringType
+from pyspark.sql.types import IntegerType, StringType
 import os
 import argparse
 import subprocess
@@ -15,7 +15,7 @@ def min_reduce(N1,N2s):
         if int(value) < int(min):
             min = value
     return min
-udf_min_reduce = funct.udf(min_reduce)
+udf_min_reduce = funct.udf(min_reduce,IntegerType())
 
 def suite_reduce(N1,MinN,N2):
     if int(MinN) == int(N2):
@@ -23,7 +23,7 @@ def suite_reduce(N1,MinN,N2):
     else :
       accum.add(1)
       return N2
-udf_suite_reduce = funct.udf(suite_reduce)
+udf_suite_reduce = funct.udf(suite_reduce,IntegerType())
 
 # Inialize parser and parse argument
 parser = argparse.ArgumentParser()
