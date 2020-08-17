@@ -15,19 +15,19 @@ def min_reduce(N1,N2s):
 udf_min_reduce = funct.udf(min_reduce)
 
 def suite_reduce(N1,MinN,N2):
-    if str(MinN) == str(N2):
+    if int(MinN) == int(N2):
       return N1
     else :
       accum.add(1)
       return N2
-udf_suite_reduce = funct.udf(suite_reduce)
+udf_suite_reduce = funct.udf(suite_reduce,IntegerType())
 
 def CCF_reduce_SS_min(N1, N2s):
   Min=N2s[0]
-  if N1 < Min:
+  if int(N1) < int(N2s[0]):
     Min=N1
   return Min
-udf_CCF_reduce_SS_min = funct.udf(CCF_reduce_SS_min)
+udf_CCF_reduce_SS_min = funct.udf(CCF_reduce_SS_min,IntegerType())
 #udf_CCF_reduce_SS_min = funct.udf(lambda x,y: CCF_reduce_SS_min(x,y),StringType())
 #_=spark.udf.register("udf_CCF_reduce_SS_min", CCF_reduce_SS_min)
 
