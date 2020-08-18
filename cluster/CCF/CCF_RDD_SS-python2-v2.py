@@ -12,7 +12,7 @@ def partitioner(n):
         return portable_hash(x[0]) % n
     return partitioner_
 
-def unpair2(entry):
+def unpair(entry):
     return entry[0][0], entry[0][1]
 
 def sorted_group(lines):
@@ -80,7 +80,6 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    new_pair_flag = False
     accum.value = 0
 
     # CCF-iterate (MAP)
@@ -89,7 +88,7 @@ while new_pair_flag:
     #Secondary Sort
     rddSS= (mapJob.keyBy(lambda kv: (kv[0], kv[1]))  # Create temporary composite key
        .repartitionAndSortWithinPartitions(numPartitions=partition_number, partitionFunc=partitioner(partition_number), keyfunc=key_func, ascending=True))
-    unpairedRDD = rddSS.map(unpair2, preservesPartitioning=True)
+    unpairedRDD = rddSS.map(unpair, preservesPartitioning=True)
     groupedRDD = unpairedRDD.mapPartitions(sorted_group, preservesPartitioning=True)
 
     # CCF-iterate (REDUCE)
@@ -110,7 +109,6 @@ while new_pair_flag:
     LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(new_pair_number))
 
 process_time_checkpoint = time()
-tmp = dedupJob.count()
 LOGGER.warn("Number of connected components = "+str(tmp))
 process_time = process_time_checkpoint - start_time
 LOGGER.warn("Process time = "+str(process_time))
