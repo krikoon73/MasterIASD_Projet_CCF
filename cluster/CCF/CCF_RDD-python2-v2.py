@@ -65,7 +65,6 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    new_pair_flag = False
     accum.value = 0
 
     # CCF-iterate (MAP)
@@ -73,7 +72,7 @@ while new_pair_flag:
 
     # CCF-iterate (REDUCE)
     #reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
-    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair)).sortByKey()
+    reduceJob = mapJob.groupByKey().flatMap(lambda pair: CCF_Iterate_reduce(pair))
     #print(reduceJob.collect())
 
     # CCF-dedup
@@ -91,7 +90,6 @@ while new_pair_flag:
     LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(new_pair_number))
 
 process_time_checkpoint = time()
-tmp = dedupJob.count()
 LOGGER.warn("Number of connected components = "+str(tmp))
 process_time = process_time_checkpoint - start_time
 LOGGER.warn("Process time = "+str(process_time))
