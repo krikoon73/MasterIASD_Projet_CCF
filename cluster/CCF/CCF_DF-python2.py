@@ -56,14 +56,12 @@ r = sc.read\
             .option("inferSchema", "true")\
             .load(input_file_path).toDF("N1","N2").coalesce(partition_number)
 
-# CSV transformation -> Separator need to be adapted considering the file format
-#r = raw_graph.map(lambda x:x.split('\t')).map(lambda x:(x[0],x[1]))
 
 new_pair_flag = True
 iteration = 0
 accum = spark.accumulator(0)
 graph = r
-current_size = graph.count()
+current_size = graph.count() 
 number_partition = graph.rdd.getNumPartitions()
 
 LOGGER.warn("Input dataset : "+input_file_path)
@@ -74,7 +72,6 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    new_pair_flag = False
     accum.value = 0
 
     # CCF-iterate (MAP)
@@ -83,14 +80,14 @@ while new_pair_flag:
     # CCF-iterate (REDUCE)
     reduceJob=mapJob.groupby("N1").agg(funct.collect_set("N2").alias('N2s'))\
     .withColumn('MinN',udf_min_reduce('N1','N2s')).where('MinN<N1')\
-    .withColumn('N2',funct.explode("N2s").alias('N2'))\
+    .withColumn('N2',funct.explode("N2s"))\
     .withColumn('NewN1',udf_suite_reduce('N1','MinN','N2'))\
     .select('NewN1','minN').withColumnRenamed('NewN1','N1').withColumnRenamed('minN','N2').persist()
 
     # CCF-dedup
     dedupJob = reduceJob.distinct().persist()
 
-#    # Force the RDD evalusation
+    # Force the RDD evalusation
     tmp = dedupJob.count()
 
     # Prepare next iteration
@@ -99,7 +96,6 @@ while new_pair_flag:
     LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(accum.value))
 
 process_time_checkpoint = time()
-tmp = dedupJob.count()
 LOGGER.warn("Number of connected components = "+str(tmp))
 process_time = process_time_checkpoint - start_time
 LOGGER.warn("Process time = "+str(process_time))
