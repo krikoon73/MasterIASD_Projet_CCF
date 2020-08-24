@@ -24,6 +24,7 @@ do
                          sh launcher.sh --executor-cores=$NUM_EXECUTOR_CORES \
                             --num-executors=$NUM_EXECUTORS --executor-memory=$EXECUTOR_MEMORY --driver-cores=$NUM_DRIVER_CORES \
                             --python-script=$SCRIPT_NAME --partitions=$PARTITIONS --hdfs-input-dir=$HDFS_INPUT_DIR --hdfs-input-file=$HDFS_INPUT_FILE --hdfs-output-dir=$HDFS_OU$
+                    done        
                done
           done
      done
