@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-# Capture input parameters 
+# Capture input parameters
 
 for key in "$@"
 do
@@ -52,7 +52,7 @@ do
 done
 
 # Spark cluster parameters
-CLUSTER_TYPE="yarn" 
+CLUSTER_TYPE="yarn"
 CLUSTER_OPTIONS="--deploy-mode cluster"
 
 # Log parameters
@@ -66,7 +66,7 @@ YARN_LOG_NAME=$JOB_NAME\--yarn.log
 RESULTS_LOG_NAME=$JOB_NAME\--results.log
 
 # Clean HDFS output directory from previous runs
-if hdfs dfs -ls $HDFS_OUTPUT_DIR;then 
+if hdfs dfs -ls $HDFS_OUTPUT_DIR;then
 	echo "DELETE output directory"
 	hdfs dfs -rm -R $HDFS_OUTPUT_DIR
 else
@@ -92,6 +92,7 @@ if [ $retVal -ne 0 ]; then
         # Extract the results
 	echo "CLUSTER_TYPE="$CLUSTER_TYPE > $LOGDIR/$RESULTS_LOG_NAME
 	echo "CLUSTER_OPTIONS="$CLUSTER_OPTIONS >> $LOGDIR/$RESULTS_LOG_NAME
+  echo "NUM_EXECUTORS="$NUM_EXECUTORS >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "NUM_EXECUTOR_CORES="$NUM_EXECUTOR_CORES >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "EXECUTOR_MEMORY="$EXECUTOR_MEMORY >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "NUM_DRIVER_CORES="$NUM_DRIVER_CORES >> $LOGDIR/$RESULTS_LOG_NAME
@@ -112,6 +113,7 @@ else
 	# Extract the results
 	echo "CLUSTER_TYPE="$CLUSTER_TYPE > $LOGDIR/$RESULTS_LOG_NAME
 	echo "CLUSTER_OPTIONS="$CLUSTER_OPTIONS >> $LOGDIR/$RESULTS_LOG_NAME
+  echo "NUM_EXECUTORS="$NUM_EXECUTORS >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "NUM_EXECUTOR_CORES="$NUM_EXECUTOR_CORES >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "EXECUTOR_MEMORY="$EXECUTOR_MEMORY >> $LOGDIR/$RESULTS_LOG_NAME
 	echo "NUM_DRIVER_CORES="$NUM_DRIVER_CORES >> $LOGDIR/$RESULTS_LOG_NAME
@@ -129,5 +131,3 @@ else
 	echo "Nb Iteration" $ITERATION
 	echo "Process time" $PROCESS_TIME
 fi
-
-
