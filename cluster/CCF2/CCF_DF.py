@@ -1,10 +1,26 @@
-#from pyspark import SparkConf,SparkContext
+from pyspark import SparkConf,SparkContext
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as funct
 from pyspark.sql.types import IntegerType, StringType
 import os
 import argparse
 from time import time
+
+def min_reduce(N1,N2s):
+    min = N1
+    for value in N2s:
+        if int(value) < int(min):
+            min = value
+    return min
+udf_min_reduce = funct.udf(min_reduce,IntegerType())
+
+def suite_reduce(N1,MinN,N2):
+    if int(MinN) == int(N2):
+      return N1
+    else :
+      accum.add(1)
+      return N2
+udf_suite_reduce = funct.udf(suite_reduce,IntegerType())
 
 # Inialize parser and parse argument
 parser = argparse.ArgumentParser()
@@ -17,13 +33,13 @@ input_file_path = args.input
 output_directory = args.output
 
 # Initialize spark-context configuration
-#spark = SparkContext.getOrCreate()
+spark = SparkContext.getOrCreate()
 sc = SparkSession.builder\
 .appName("pyspark-shell-CCF-DF")\
 .getOrCreate() #.config("spark.driver.memory", "16g")
 
 sc.sparkContext.setLogLevel("WARN")
-#spark.setLogLevel("WARN")
+spark.setLogLevel("WARN")
 
 # Initialize logger
 log4jLogger = sc._jvm.org.apache.log4j
@@ -43,7 +59,7 @@ r = sc.read\
 
 new_pair_flag = True
 iteration = 0
-#accum = spark.accumulator(0)
+accum = spark.accumulator(0)
 graph = r
 current_size = graph.count()
 number_partition = graph.rdd.getNumPartitions()
@@ -56,16 +72,17 @@ start_time = time()
 
 while new_pair_flag:
     iteration += 1
-    newPairs = 0
+    accum.value = 0
 
     # CCF-iterate (MAP)
     mapJob = graph.union(graph.select('N2', 'N1')).coalesce(partition_number)#.persist()
 
     # CCF-iterate (REDUCE)
-    minDF=mapJob.groupBy('N1').agg(funct.min(mapJob['N2']).alias('minN')).where('min(N2)<N1').persist()
-    supplDF=mapJob.join(minDF, "N1").where("minN<>N2").select('N2','minN').withColumnRenamed('N2','N1').withColumnRenamed('minN','N2').persist()
-    newPairs=supplDF.count()
-    reduceJob = supplDF.union(minDF).coalesce(partition_number).persist()
+    reduceJob=mapJob.groupby("N1").agg(funct.collect_set("N2").alias('N2s'))\
+    .withColumn('MinN',udf_min_reduce('N1','N2s')).where('MinN<N1')\
+    .withColumn('N2',funct.explode("N2s"))\
+    .withColumn('NewN1',udf_suite_reduce('N1','MinN','N2'))\
+    .select('NewN1','minN').withColumnRenamed('NewN1','N1').withColumnRenamed('minN','N2').coalesce(partition_number).persist()
 
     # CCF-dedup
     dedupJob = reduceJob.distinct().persist()
@@ -75,8 +92,8 @@ while new_pair_flag:
 
     # Prepare next iteration
     graph = dedupJob
-    new_pair_flag = bool(newPairs)
-    LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(newPairs))
+    new_pair_flag = bool(accum.value)
+    LOGGER.warn("Iteration "+str(iteration)+" ===> "+"newPairs = "+str(accum.value))
 
 process_time_checkpoint = time()
 LOGGER.warn("Number of connected components = "+str(tmp))
