@@ -30,7 +30,7 @@ log4jLogger = sc._jvm.org.apache.log4j
 LOGGER = log4jLogger.LogManager.getLogger(__name__)
 
 LOGGER.warn("################################")
-LOGGER.warn(" Start CCF DF ")
+LOGGER.warn(" Start CCF DF version 1")
 LOGGER.warn("--------------------------------")
 
 # Import as RDD line_by_line
