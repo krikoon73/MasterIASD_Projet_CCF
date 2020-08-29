@@ -16,12 +16,12 @@ def min_reduce(N1,N2s):
 udf_min_reduce = funct.udf(min_reduce)
 
 #this function is used in secondary sort
-def CCF_reduce_SS_min(N1, N2s):
+def min_reduce_SS(N1, N2s):
   Min=N2s[0]
   if int(N1) < int(N2s[0]):
     Min=N1
   return Min
-udf_CCF_reduce_SS_min = funct.udf(CCF_reduce_SS_min,IntegerType())
+udf_min_reduce_SS = funct.udf(min_reduce_SS,IntegerType())
 
 def suite_reduce(N1,MinN,N2):
     if int(MinN) == int(N2):
@@ -91,7 +91,7 @@ while new_pair_flag:
     # CCF-iterate (REDUCE)
 
     reduceJob=mapJob.groupby("N1").agg(funct.sort_array(funct.collect_set("N2")).alias('N2s'))\
-    .withColumn('MinN',udf_CCF_reduce_SS_min('N1','N2s')).where('MinN<N1')\
+    .withColumn('MinN',udf_min_reduce_SS('N1','N2s')).where('MinN<N1')\
     .withColumn('N2',funct.explode("N2s"))\
     .withColumn('NewN1',udf_suite_reduce('N1','MinN','N2'))\
     .select('NewN1','minN').withColumnRenamed('NewN1','N1').withColumnRenamed('minN','N2').coalesce(partition_number).persist()

@@ -62,7 +62,7 @@ while new_pair_flag:
     mapJob = graph.union(graph.select('N2', 'N1')).coalesce(partition_number)#.persist()
 
     # CCF-iterate (REDUCE)
-    minDF=mapJob.groupBy('N1').agg(funct.min(mapJob['N2']).alias('minN')).where('min(N2)<N1').persist()
+    minDF=mapJob.groupBy('N1').agg(funct.min(mapJob['N2']).alias('minN')).where('minN<N1').persist()
     supplDF=mapJob.join(minDF, "N1").where("minN<>N2").select('N2','minN').withColumnRenamed('N2','N1').withColumnRenamed('minN','N2').persist()
     newPairs=supplDF.count()
     reduceJob = supplDF.union(minDF).coalesce(partition_number).persist()
